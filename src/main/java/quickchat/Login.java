@@ -42,8 +42,11 @@ public class Login {
  * @return true if the username is valid, otherwise false
  */
     public boolean checkUserName() {
-        return username.contains("_") && username.length() <= 5;
-    }
+    boolean containsUnderscore = username.contains("_");
+    boolean withinLengthLimit = username.length() <= 5;
+
+    return containsUnderscore && withinLengthLimit;
+}
     
  /**
  * Validates the password according to the project requirements.
