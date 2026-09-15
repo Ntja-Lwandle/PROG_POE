@@ -56,10 +56,17 @@ public class Login {
  *
  * @return true if the password meets the requirements
  */
-    public boolean checkPasswordComplexity(){
-        return password.matches("^(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,}$");
-        
-     }
+  public boolean checkPasswordComplexity() {
+    boolean hasMinimumLength = password.length() >= 8;
+    boolean hasCapitalLetter = password.matches(".*[A-Z].*");
+    boolean hasNumber = password.matches(".*[0-9].*");
+    boolean hasSpecialCharacter = password.matches(".*[^a-zA-Z0-9].*");
+
+    return hasMinimumLength
+            && hasCapitalLetter
+            && hasNumber
+            && hasSpecialCharacter;
+}
     
  /**
  * Checks whether the cellphone number follows the required
