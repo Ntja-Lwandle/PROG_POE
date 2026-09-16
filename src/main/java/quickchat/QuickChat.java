@@ -9,9 +9,8 @@ import java.util.Scanner;
 /**
  * Main class for the QuickChat console application.
  * 
- * This class collects registration details from the user,
- * creates a Login object, validates the registration details,
- * and allows the user to attempt to log in.
+ * Main class for the QuickChat console application.
+ * Handles user input, registration, and login.
  *
  * @author lwandle
  */
