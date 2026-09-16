@@ -78,10 +78,17 @@ public class Login {
  * @return true if the cellphone number is correctly formatted,
  *         otherwise false
  */
-    public boolean checkCellPhoneNumber(){
-        return cellPhoneNumber.matches("^\\+27\\d{9}$");
-    }
-    
+   
+   public boolean checkCellPhoneNumber() {
+    boolean hasSouthAfricanCode = cellPhoneNumber.startsWith("+27");
+    boolean hasCorrectLength = cellPhoneNumber.length() == 12;
+    boolean containsOnlyDigitsAfterCode =
+            cellPhoneNumber.substring(3).matches("\\d{9}");
+
+    return hasSouthAfricanCode
+            && hasCorrectLength
+            && containsOnlyDigitsAfterCode;
+} 
 /**
  * Registers the user after validating the username, password
  * and cellphone number.
