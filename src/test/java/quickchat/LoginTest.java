@@ -21,9 +21,9 @@ public class LoginTest {
  * @author lwand
  */
     @Test
-    public void testCheckUserNameValid() {
+    public void testCheckUserNameMaximumLenght() {
 
-        Login instance = new Login(
+        Login login = new Login(
                 "kyl_1",
                 "Ch&&sec@ke99!",
                 "+27838968976",
@@ -31,7 +31,7 @@ public class LoginTest {
                 "Smith"
         );
 
-        assertTrue(instance.checkUserName());
+        assertTrue(login.checkUserName());
     }
 
     /**
