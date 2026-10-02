@@ -68,27 +68,21 @@ public class Login {
             && hasSpecialCharacter;
 }
     
- /**
+/**
  * Checks whether the cellphone number follows the required
- * South African international format.
+ * South African international format using a regular expression.
  *
  * The number must begin with +27 and contain nine additional
  * digits.
  *
+ * Regex adapted from Oracle's Java Regular Expressions documentation.
+ *
  * @return true if the cellphone number is correctly formatted,
  *         otherwise false
  */
-   
-   public boolean checkCellPhoneNumber() {
-    boolean hasSouthAfricanCode = cellPhoneNumber.startsWith("+27");
-    boolean hasCorrectLength = cellPhoneNumber.length() == 12;
-    boolean containsOnlyDigitsAfterCode =
-            cellPhoneNumber.substring(3).matches("\\d{9}");
-
-    return hasSouthAfricanCode
-            && hasCorrectLength
-            && containsOnlyDigitsAfterCode;
-} 
+public boolean checkCellPhoneNumber() {
+    return cellPhoneNumber.matches("^\\+27\\d{9}$");
+}
 /**
  * Registers the user after validating the username, password
  * and cellphone number.
