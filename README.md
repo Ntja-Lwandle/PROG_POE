@@ -118,4 +118,18 @@ ChatGPT was used to assist with understanding the assessment requirements, expla
 
 ## References
 
-Internet Engineering Task Force (2017) *The JavaScript Object Notation (JSON) Data Interchange Format*. RFC 8259. Available at: https://www.rfc-editor.org/rfc/rfc8259 (Accessed: 18 October 2026).
+Apache Software Foundation (n.d.) *Maven Getting Started Guide*. Available at: https://maven.apache.org/guides/getting-started/index.html (Accessed: 10 October 2026).
+
+Bray, T. (2017) *The JavaScript Object Notation (JSON) Data Interchange Format*. RFC 8259. Internet Engineering Task Force. Available at: https://www.rfc-editor.org/rfc/rfc8259 (Accessed: 18 September 2026).
+
+GitHub (n.d.) *Building and testing Java with Maven*. GitHub Docs. Available at: https://docs.github.com/en/actions/tutorials/build-and-test-code/java-with-maven (Accessed: 5 September 2026).
+
+JUnit Team (n.d.) *JUnit 5 User Guide*. Available at: https://junit.org/junit5/docs/current/user-guide/ (Accessed: 25 September 2026).
+
+Oracle (n.d.) *Class Pattern: Java Platform, Standard Edition API Specification*. Available at: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html (Accessed: 10 October 2026).
+
+Oracle (n.d.) *Class SecureRandom: Java Platform, Standard Edition API Specification*. Available at: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html (Accessed: 10 October 2026).
+
+Oracle (n.d.) *Class Scanner: Java Platform, Standard Edition API Specification*. Available at: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Scanner.html (Accessed: 10 October 2026).
+
+Oracle (n.d.) *Interface Path: Java Platform, Standard Edition API Specification*. Available at: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html (Accessed: 10 October 2026).
