@@ -5,8 +5,6 @@
 package quickchat;
 
 /**
- * Handles user registration validation and login authentication
- * for the QuickChat application.
  *
  * The class stores the user's registration details and provides
  * methods to validate the username, password and cellphone number,
@@ -42,10 +40,10 @@ public class Login {
  * @return true if the username is valid, otherwise false
  */
     public boolean checkUserName() {
-    boolean containsUnderscore = username.contains("_");
-    boolean withinLengthLimit = username.length() <= 5;
+        return username != null
+              && username.contains("_")
+              && username.length() <= 5;
 
-    return containsUnderscore && withinLengthLimit;
 }
     
  /**
@@ -57,32 +55,19 @@ public class Login {
  * @return true if the password meets the requirements
  */
   public boolean checkPasswordComplexity() {
-    boolean hasMinimumLength = password.length() >= 8;
-    boolean hasCapitalLetter = password.matches(".*[A-Z].*");
-    boolean hasNumber = password.matches(".*[0-9].*");
-    boolean hasSpecialCharacter = password.matches(".*[^a-zA-Z0-9].*");
+   return password != null
+                && password.length() >= 8
+                && password.matches(".*[A-Z].*")
+                && password.matches(".*[0-9].*")
+                && password.matches(".*[^a-zA-Z0-9].*");
+    }
 
-    return hasMinimumLength
-            && hasCapitalLetter
-            && hasNumber
-            && hasSpecialCharacter;
-}
-    
-/**
- * Checks whether the cellphone number follows the required
- * South African international format using a regular expression.
- *
- * The number must begin with +27 and contain nine additional
- * digits.
- *
- * Regex adapted from Oracle's Java Regular Expressions documentation.
- *
- * @return true if the cellphone number is correctly formatted,
- *         otherwise false
- */
-public boolean checkCellPhoneNumber() {
-    return cellPhoneNumber.matches("^\\+27\\d{9}$");
-}
+    public boolean checkCellPhoneNumber() {
+
+        return cellPhoneNumber != null
+                && cellPhoneNumber.matches("^\\+27[0-9]{9}$");
+    }
+ 
 /**
  * Registers the user after validating the username, password
  * and cellphone number.
@@ -91,9 +76,10 @@ public boolean checkCellPhoneNumber() {
  */    
     public String registerUser() {
         if(!checkUserName()) {
-            return "Username is not correctly formatted; please ensure " +
-                    "that your username contains an underscore and is " +
-                    "no more than five characters in length. ";
+            return "Username is not correctly formatted; "
+                    + "please ensure that your username contains "
+                    + " an underscore and is no more than five "
+                    + "characters in length. ";
         }
         if (!checkPasswordComplexity()){
             return "Password is not correctly formatted; please ensure " +
@@ -104,20 +90,24 @@ public boolean checkCellPhoneNumber() {
             return "Cell phone number incorrectly formatted or does not " +
                     "contain international code. ";
         }
-        return """
-               Username successfully captured.
-               Password successfully captured.
-               Cell phone number successfully added.""";      
+        return 
+               "Username successfully captured.\n"
+               + "Password successfully captured.\n"
+               + "Cell phone number successfully added.";      
         }
     
-    public boolean loginUser(String username, String password) {
-        return username.equals(this.username) && password.equals(this.password);
+    public boolean loginUser(String enteredUsername, String enteredPassword) {
+        
+        return username.equals(enteredUsername) 
+                && password.equals(enteredPassword);
     }
     
     public String returnLoginStatus (boolean loginSuccessful) {
         
         if(loginSuccessful) {
-            return "Welcome " + firstName + ", " + lastName + " it is great to see you again.";
+            return "Welcome " + firstName + ", " 
+                    + lastName 
+                    + " it is great to see you again.";
         }
         return "Username or password incorrect, please try again.";
     

@@ -7,227 +7,150 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for the Login class.
  *
- * @author lwand
- */
-public class LoginTest {
-
- /**
- * Unit tests for the Login class.
- *
  * These tests verify username validation, password complexity,
  * cellphone number validation, registration, login authentication,
  * and login status messages using the required project test data.
  *
- * @author lwand
+ * @author lwandle
  */
-    @Test
-    public void testCheckUserNameMaximumLenght() {
+public class LoginTest {
 
-        Login login = new Login(
-                "kyl_1",
-                "Ch&&sec@ke99!",
-                "+27838968976",
+     private Login createUser(String username,
+                             String password,
+                             String phone) {
+
+        return new Login(
+                username,
+                password,
+                phone,
                 "John",
                 "Smith"
         );
-
-        assertTrue(login.checkUserName());
     }
 
-    /**
-     * Tests an incorrectly formatted username.
-     */
     @Test
-    public void testCheckUserNameInvalid() {
+    public void testValidUsername() {
 
-        Login instance = new Login(
-                "kyle!!!!!!!",
-                "Ch&&sec@ke99!",
-                "+27838968976",
-                "John",
-                "Smith"
+        Login user = createUser(
+                "kyl_1", "Ch&&sec@ke99!", "+27838968976"
         );
 
-        assertFalse(instance.checkUserName());
+        assertTrue(user.checkUserName());
     }
 
-    /**
-     * Tests a password that meets the complexity requirements.
-     */
     @Test
-    public void testCheckPasswordComplexityValid() {
+    public void testInvalidUsername() {
 
-        Login instance = new Login(
-                "kyl_1",
-                "Ch&&sec@ke99!",
-                "+27838968976",
-                "John",
-                "Smith"
+        Login user = createUser(
+                "kyle!!!!!!!", "Ch&&sec@ke99!", "+27838968976"
         );
 
-        assertTrue(instance.checkPasswordComplexity());
+        assertFalse(user.checkUserName());
     }
 
-    /**
-     * Tests a password that does not meet the complexity requirements.
-     */
     @Test
-    public void testCheckPasswordComplexityInvalid() {
+    public void testValidPassword() {
 
-        Login instance = new Login(
-                "kyl_1",
-                "password",
-                "+27838968976",
-                "John",
-                "Smith"
+        Login user = createUser(
+                "kyl_1", "Ch&&sec@ke99!", "+27838968976"
         );
 
-        assertFalse(instance.checkPasswordComplexity());
+        assertTrue(user.checkPasswordComplexity());
     }
 
-    /**
-     * Tests a correctly formatted South African cellphone number.
-     */
     @Test
-    public void testCheckCellPhoneNumberValid() {
+    public void testInvalidPassword() {
 
-        Login instance = new Login(
-                "kyl_1",
-                "Ch&&sec@ke99!",
-                "+27838968976",
-                "John",
-                "Smith"
+        Login user = createUser(
+                "kyl_1", "password", "+27838968976"
         );
 
-        assertTrue(instance.checkCellPhoneNumber());
+        assertFalse(user.checkPasswordComplexity());
     }
 
-    /**
-     * Tests an incorrectly formatted cellphone number.
-     */
     @Test
-    public void testCheckCellPhoneNumberInvalid() {
+    public void testValidPhone() {
 
-        Login instance = new Login(
-                "kyl_1",
-                "Ch&&sec@ke99!",
-                "08966553",
-                "John",
-                "Smith"
+        Login user = createUser(
+                "kyl_1", "Ch&&sec@ke99!", "+27838968976"
         );
 
-        assertFalse(instance.checkCellPhoneNumber());
+        assertTrue(user.checkCellPhoneNumber());
     }
 
-    /**
-     * Tests successful user registration.
-     */
     @Test
-    public void testRegisterUserValid() {
+    public void testInvalidPhone() {
 
-        Login instance = new Login(
-                "kyl_1",
-                "Ch&&sec@ke99!",
-                "+27838968976",
-                "John",
-                "Smith"
+        Login user = createUser(
+                "kyl_1", "Ch&&sec@ke99!", "08966553"
         );
 
-        String expected =
+        assertFalse(user.checkCellPhoneNumber());
+    }
+
+    @Test
+    public void testRegistrationSuccess() {
+
+        Login user = createUser(
+                "kyl_1", "Ch&&sec@ke99!", "+27838968976"
+        );
+
+        assertEquals(
                 "Username successfully captured.\n"
                 + "Password successfully captured.\n"
-                + "Cell phone number successfully added.";
-
-        assertEquals(expected, instance.registerUser());
+                + "Cell phone number successfully added.",
+                user.registerUser()
+        );
     }
 
-    /**
-     * Tests successful login.
-     */
     @Test
-    public void testLoginUserSuccessful() {
+    public void testLoginSuccess() {
 
-        Login instance = new Login(
-                "kyl_1",
-                "Ch&&sec@ke99!",
-                "+27838968976",
-                "John",
-                "Smith"
+        Login user = createUser(
+                "kyl_1", "Ch&&sec@ke99!", "+27838968976"
         );
 
         assertTrue(
-                instance.loginUser(
-                        "kyl_1",
-                        "Ch&&sec@ke99!"
-                )
+                user.loginUser("kyl_1", "Ch&&sec@ke99!")
         );
     }
 
-    /**
-     * Tests unsuccessful login.
-     */
     @Test
-    public void testLoginUserFailed() {
+    public void testLoginFailure() {
 
-        Login instance = new Login(
-                "kyl_1",
-                "Ch&&sec@ke99!",
-                "+27838968976",
-                "John",
-                "Smith"
+        Login user = createUser(
+                "kyl_1", "Ch&&sec@ke99!", "+27838968976"
         );
 
         assertFalse(
-                instance.loginUser(
-                        "wrong",
-                        "wrongPassword"
-                )
+                user.loginUser("wrong", "wrongPassword")
         );
     }
 
-    /**
-     * Tests the successful login status message.
-     */
     @Test
-    public void testReturnLoginStatusSuccessful() {
+    public void testSuccessfulLoginStatus() {
 
-        Login instance = new Login(
-                "kyl_1",
-                "Ch&&sec@ke99!",
-                "+27838968976",
-                "John",
-                "Smith"
+        Login user = createUser(
+                "kyl_1", "Ch&&sec@ke99!", "+27838968976"
         );
-
-        String expected =
-                "Welcome John, Smith it is great to see you again.";
 
         assertEquals(
-                expected,
-                instance.returnLoginStatus(true)
+                "Welcome John, Smith it is great to see you again.",
+                user.returnLoginStatus(true)
         );
     }
 
-    /**
-     * Tests the failed login status message.
-     */
     @Test
-    public void testReturnLoginStatusFailed() {
+    public void testFailedLoginStatus() {
 
-        Login instance = new Login(
-                "kyl_1",
-                "Ch&&sec@ke99!",
-                "+27838968976",
-                "John",
-                "Smith"
+        Login user = createUser(
+                "kyl_1", "Ch&&sec@ke99!", "+27838968976"
         );
-
-        String expected =
-                "Username or password incorrect, please try again.";
 
         assertEquals(
-                expected,
-                instance.returnLoginStatus(false)
+                "Username or password incorrect, please try again.",
+                user.returnLoginStatus(false)
         );
     }
+
 }
