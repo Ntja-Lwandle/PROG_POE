@@ -47,9 +47,13 @@ private static final Set<String> usedMessageIDs = new HashSet<>();
     }
 
     // Validates a South African international phone number.
-    public boolean checkRecipientCell() {
-        return validRecipient(recipient);
+    public String checkRecipientCell() {
+    if (validRecipient(recipient)) {
+        return "Cell phone number successfully captured.";
     }
+
+    return INVALID_RECIPIENT;
+}
 
     public static boolean validRecipient(String number) {
         return number != null
@@ -57,12 +61,9 @@ private static final Set<String> usedMessageIDs = new HashSet<>();
     }
 
     public String checkRecipientCellMessage() {
-        if (checkRecipientCell()) {
-            return "Cell phone number successfully captured.";
-        }
-        return INVALID_RECIPIENT;
+        return checkRecipientCell();
     }
-
+       
     // Checks the 250-character message limit.
     public boolean checkMessageLength() {
         return message != null

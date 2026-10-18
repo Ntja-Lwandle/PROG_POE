@@ -260,5 +260,33 @@ public class MessageTest {
 
             Files.deleteIfExists(file);
         }
+        
     }
+@Test
+public void testCheckRecipientCellReturnsRequiredMessage() {
+
+    Message valid = new Message(
+            "0012345678",
+            0,
+            "+27718693002",
+            "Hi Mike"
+    );
+
+    Message invalid = new Message(
+            "0012345678",
+            1,
+            "08575975889",
+            "Hi Keegan"
+    );
+
+    assertEquals(
+            "Cell phone number successfully captured.",
+            valid.checkRecipientCell()
+    );
+
+    assertEquals(
+            Message.INVALID_RECIPIENT,
+            invalid.checkRecipientCell()
+    );
+}   
 }
