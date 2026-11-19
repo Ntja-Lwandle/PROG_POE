@@ -1,125 +1,115 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package quickchat;
 
 /**
- * Handles user registration validation and login authentication
- * for the QuickChat application.
- *
- * The class stores the user's registration details and provides
- * methods to validate the username, password and cellphone number,
- * register the user and authenticate login details.
+ * Stores the registered user's details and checks the username, password and
+ * cell phone number. It also handles registration and login messages.
  *
  * @author lwandle
  */
 public class Login {
+
     private final String username;
     private final String password;
     private final String cellPhoneNumber;
     private final String firstName;
     private final String lastName;
-    
-    public Login(String username, String password,
-                 String cellPhoneNumber,
-                 String firstName,
-                 String lastName){
-        
+
+    public Login(String username, String password, String cellPhoneNumber,
+            String firstName, String lastName) {
         this.username = username;
         this.password = password;
         this.cellPhoneNumber = cellPhoneNumber;
         this.firstName = firstName;
         this.lastName = lastName;
     }
-    
- /**
- * Validates the username according to the project requirements.
- *
- * The username must contain an underscore and must not exceed
- * five characters.
- *
- * @return true if the username is valid, otherwise false
- */
+
+    /**
+     * The username must contain an underscore and be no more than five
+     * characters long.
+     */
     public boolean checkUserName() {
-    boolean containsUnderscore = username.contains("_");
-    boolean withinLengthLimit = username.length() <= 5;
+        return username != null
+                && username.contains("_")
+                && username.length() <= 5;
+    }
 
-    return containsUnderscore && withinLengthLimit;
-}
-    
- /**
- * Validates the password according to the project requirements.
- *
- * The password must contain at least eight characters, one
- * uppercase letter, one number and one special character.
- *
- * @return true if the password meets the requirements
- */
-  public boolean checkPasswordComplexity() {
-    boolean hasMinimumLength = password.length() >= 8;
-    boolean hasCapitalLetter = password.matches(".*[A-Z].*");
-    boolean hasNumber = password.matches(".*[0-9].*");
-    boolean hasSpecialCharacter = password.matches(".*[^a-zA-Z0-9].*");
+    /**
+     * The password must be at least eight characters long and contain a
+     * capital letter, a number and a special character.
+     */
+    public boolean checkPasswordComplexity() {
+        return password != null
+                && password.length() >= 8
+                && password.matches(".*[A-Z].*")
+                && password.matches(".*[0-9].*")
+                && password.matches(".*[^a-zA-Z0-9].*");
+    }
 
-    return hasMinimumLength
-            && hasCapitalLetter
-            && hasNumber
-            && hasSpecialCharacter;
-}
-    
-/**
- * Checks whether the cellphone number follows the required
- * South African international format using a regular expression.
- *
- * The number must begin with +27 and contain nine additional
- * digits.
- *
- * Regex adapted from Oracle's Java Regular Expressions documentation.
- *
- * @return true if the cellphone number is correctly formatted,
- *         otherwise false
- */
-public boolean checkCellPhoneNumber() {
-    return cellPhoneNumber.matches("^\\+27\\d{9}$");
-}
-/**
- * Registers the user after validating the username, password
- * and cellphone number.
- *
- * @return a message indicating whether registration was successful
- */    
+    /**
+     * Checks the cell phone number by using the shared regular expression
+     * method below.
+     */
+    public boolean checkCellPhoneNumber() {
+        return isValidCellNumber(cellPhoneNumber);
+    }
+
+    /**
+     * A valid number starts with the South African international code (+27)
+     * followed by nine digits, for example +27838968976.
+     *
+     * The regular expression is based on the Pattern class documentation:
+     * Oracle (n.d.) Class Pattern, Java Platform, Standard Edition API
+     * Specification. Available at:
+     * https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html
+     * (Accessed: 10 October 2026).
+     */
+    public static boolean isValidCellNumber(String number) {
+        return number != null && number.matches("^\\+27[0-9]{9}$");
+    }
+
+    /**
+     * Returns the registration message. The first problem found is reported.
+     */
     public String registerUser() {
-        if(!checkUserName()) {
-            return "Username is not correctly formatted; please ensure " +
-                    "that your username contains an underscore and is " +
-                    "no more than five characters in length. ";
+        if (!checkUserName()) {
+            return "Username is not correctly formatted; please ensure that "
+                    + "your username contains an underscore and is no more "
+                    + "than five characters in length.";
         }
-        if (!checkPasswordComplexity()){
-            return "Password is not correctly formatted; please ensure " +
-                    "that the password contains at least eight characters, " +
-                    "a capital letter, a number, and a special character. ";
+        if (!checkPasswordComplexity()) {
+            return "Password is not correctly formatted; please ensure that "
+                    + "the password contains at least eight characters, a "
+                    + "capital letter, a number, and a special character.";
         }
         if (!checkCellPhoneNumber()) {
-            return "Cell phone number incorrectly formatted or does not " +
-                    "contain international code. ";
+            return "Cell phone number incorrectly formatted or does not "
+                    + "contain international code.";
         }
-        return """
-               Username successfully captured.
-               Password successfully captured.
-               Cell phone number successfully added.""";      
-        }
-    
-    public boolean loginUser(String username, String password) {
-        return username.equals(this.username) && password.equals(this.password);
+        return "Username successfully captured.\n"
+                + "Password successfully captured.\n"
+                + "Cell phone number successfully added.";
     }
-    
-    public String returnLoginStatus (boolean loginSuccessful) {
-        
-        if(loginSuccessful) {
-            return "Welcome " + firstName + ", " + lastName + " it is great to see you again.";
+
+    /**
+     * Checks the entered login details against the registered details.
+     */
+    public boolean loginUser(String enteredUsername, String enteredPassword) {
+        return username.equals(enteredUsername)
+                && password.equals(enteredPassword);
+    }
+
+    /**
+     * Returns the welcome message or the failed login message.
+     */
+    public String returnLoginStatus(boolean loginSuccessful) {
+        if (loginSuccessful) {
+            return "Welcome " + firstName + ", " + lastName
+                    + " it is great to see you again.";
         }
         return "Username or password incorrect, please try again.";
-    
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
     }
 }

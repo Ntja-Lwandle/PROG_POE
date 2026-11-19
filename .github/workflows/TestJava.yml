@@ -1,0 +1,32 @@
+
+name: QuickChat Automated Java Tests
+
+on:
+  push:
+    branches:
+     - main
+     - part2-messaging
+
+
+  pull_request:
+
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build project and run unit Tests
+        run: mvn -B clean verify
