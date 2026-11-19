@@ -38,6 +38,30 @@ The menu offers three options:
 2. Show recently sent messages – Coming Soon
 3. Quit
 
+## Part 3: Stored Messages and Reports
+
+The final part of QuickChat introduces message management using arrays
+and JSON storage.
+
+The application maintains arrays for:
+
+- Sent messages
+- Disregarded messages
+- Stored messages
+- Message hashes
+- Message IDs
+
+The Stored Messages menu allows users to:
+
+1. Display sender and recipient details.
+2. Find the longest stored message.
+3. Search for a message using its ID.
+4. Search for messages by recipient.
+5. Delete a stored message using its hash.
+6. Display a message report.
+
+Stored messages are saved and retrieved using a JSON file.
+
 ### Message Features
 
 - A while loop keeps the menu running until the user quits.
@@ -62,22 +86,26 @@ Message: `Hi Mike, can you join us for dinner tonight?`
 Generated Hash: `00:0:HITONIGHT`
 
 ## Project Structure
-
-```text
 QuickChat/
+├── .github/
+│   └── workflows/
+│       └── TestJava.yml
 ├── src/
-│   ├── main/java/quickchat/
-│   │   ├── QuickChat.java
-│   │   ├── Login.java
-│   │   └── Message.java
-│   └── test/java/quickchat/
-│       ├── LoginTest.java
-│       └── MessageTest.java
-├── .github/workflows/
-│   └── TestJava.yml
+│   ├── main/
+│   │   └── java/quickchat/
+│   │       ├── QuickChat.java
+│   │       ├── Login.java
+│   │       ├── Message.java
+│   │       ├── MessageManager.java
+│   │       └── MessageStorage.java
+│   └── test/
+│       └── java/quickchat/
+│           ├── LoginTest.java
+│           ├── MessageTest.java
+│           └── MessageManagerTest.java
+├── stored-messages.json
 ├── pom.xml
 └── README.md
-```
 
 ## How to Run the Application
 
@@ -91,22 +119,18 @@ QuickChat/
 
 ## Unit Testing
 
-JUnit 5 tests are used to validate registration, login, message length, recipient numbers, message IDs, hashes, message actions, and JSON storage.
+JUnit 5 is used to test the registration, login, message validation,
+message ID generation, message hash generation, message actions,
+array population, message searching, deletion and JSON storage.
 
-The most recent local test run completed with:
-
-- Tests run: 26
-- Failures: 0
-- Errors: 0
-- Skipped: 0
-
-To run the tests in NetBeans, right-click the project and select Test.
+The tests can be executed in NetBeans by selecting Test.
 
 Alternatively, run:
 
-`mvn clean test`
+mvn clean verify
 
-GitHub Actions is configured to execute the Maven tests when changes are pushed to GitHub.
+GitHub Actions is configured to automatically build the project
+and execute the unit tests when changes are pushed to GitHub.
 
 ## Version Control
 
