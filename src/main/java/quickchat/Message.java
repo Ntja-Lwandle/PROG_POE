@@ -2,75 +2,161 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package quickchat;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.SecureRandom;
-import java.util.List;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
 
 /**
- * Represents a QuickChat message.
- * Handles message validation, hashing and storage.
+ * Represents an individual QuickChat message.
+ *
+ * Stores message information and provides validation, message ID generation and
+ * hash generation.
+ *
+ * @author Lwandle
  */
 public class Message {
 
-private static final Set<String> usedMessageIDs = new HashSet<>();
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final Set<String> USED_IDS = new HashSet<>();
 
-    private final String messageID;
-    private final int messageNumber;
-    private final String recipient;
-    private final String message;
+    private String messageID;
+    private int messageNumber;
+    private String sender;
+    private String recipient;
+    private String message;
 
-    public static final String INVALID_RECIPIENT =
-        "Cell phone number is incorrectly formatted or does not "
-        + "contain an international code. Please correct the "
-        + "number and try again.";
+    public static final String INVALID_RECIPIENT
+            = "Cell phone number is incorrectly formatted "
+            + "or does not contain an international code. "
+            + "Please correct the number and try again.";
 
+    /**
+     * Creates a message with sender information.
+     */
     public Message(String messageID, int messageNumber,
-                   String recipient, String message) {
+            String sender, String recipient,
+            String message) {
 
         this.messageID = messageID;
         this.messageNumber = messageNumber;
+        this.sender = sender;
         this.recipient = recipient;
-        this.message = message;
+        this.message = normalizeMessage(message);
     }
 
-    // Checks that the ID contains exactly 10 digits.
+    /**
+     * Backwards-compatible constructor for existing tests.
+     */
+    public Message(String messageID, int messageNumber,
+            String recipient, String message) {
+
+        this(messageID, messageNumber,
+                "QuickChat", recipient, message);
+    }
+
+    /**
+     * Removes unnecessary spaces before punctuation.
+     */
+    private static String normalizeMessage(String text) {
+        return text == null
+                ? null
+                : text.replaceAll("\\s+([,!.?;:])", "$1");
+    }
+
+    /**
+     * Backwards-compatible recipient validation method.
+     */
+    public String checkRecipientCellMessage() {
+        return checkRecipientCell();
+    }
+
+    /**
+     * Returns the total number of sent messages.
+     */
+    public static int returnTotalMessagess(List<Message> sent) {
+        return sent.size();
+    }
+
+    /**
+     * Backwards-compatible JSON storage method.
+     */
+    public void storeMessage(Path path) throws IOException {
+
+        MessageStorage storage = new MessageStorage(path);
+
+        List<Message> messages = storage.loadMessages();
+
+        messages.add(this);
+
+        storage.saveMessages(messages);
+    }
+
+    /**
+     * Generates a unique ten-digit message ID.
+     */
+    public static synchronized String generateMessageID() {
+
+        String id;
+
+        do {
+            StringBuilder number = new StringBuilder();
+
+            for (int i = 0; i < 10; i++) {
+                number.append(RANDOM.nextInt(10));
+            }
+
+            id = number.toString();
+
+        } while (!USED_IDS.add(id));
+
+        return id;
+    }
+
+    /**
+     * Checks that the message ID contains ten digits.
+     */
     public boolean checkMessageID() {
+
         return messageID != null
                 && messageID.matches("[0-9]{10}");
     }
 
-    // Validates a South African international phone number.
-    public String checkRecipientCell() {
-    if (validRecipient(recipient)) {
-        return "Cell phone number successfully captured.";
-    }
-
-    return INVALID_RECIPIENT;
-}
-
+    /**
+     * Validates a South African international number.
+     */
     public static boolean validRecipient(String number) {
+
         return number != null
                 && number.matches("^\\+27[0-9]{9}$");
     }
 
-    public String checkRecipientCellMessage() {
-        return checkRecipientCell();
+    public String checkRecipientCell() {
+
+        if (validRecipient(recipient)) {
+            return "Cell phone number successfully captured.";
+        }
+
+        return INVALID_RECIPIENT;
     }
-       
-    // Checks the 250-character message limit.
+
+    /**
+     * Checks the message length.
+     */
     public boolean checkMessageLength() {
+
         return message != null
                 && !message.isBlank()
                 && message.length() <= 250;
     }
 
+    /**
+     * Returns an appropriate message validation response.
+     */
     public static String validateMessage(String text) {
 
         if (text == null || text.isBlank()) {
@@ -78,6 +164,7 @@ private static final Set<String> usedMessageIDs = new HashSet<>();
         }
 
         if (text.length() > 250) {
+
             int extra = text.length() - 250;
 
             return "Message exceeds 250 characters by "
@@ -88,45 +175,42 @@ private static final Set<String> usedMessageIDs = new HashSet<>();
         return "Message ready to send.";
     }
 
-    // Generates a random 10-digit message ID.
-    public static String generateMessageID() {
+    /**
+     * Removes punctuation around a word.
+     */
+    private String cleanWord(String word) {
 
-      SecureRandom random = new SecureRandom();
-    String id;
-
-    do {
-        StringBuilder number = new StringBuilder();
-
-        for (int i = 0; i < 10; i++) {
-            number.append(random.nextInt(10));
-        }
-
-        id = number.toString();
-
-    } while (!usedMessageIDs.add(id));
-
-    return id; 
+        return word.replaceAll(
+                "^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", ""
+        );
     }
 
-    // Creates the required uppercase message hash.
+    /**
+     * Creates the required uppercase message hash.
+     *
+     * Format: First two ID digits : message number : first word + last word
+     */
     public String createMessageHash() {
 
-        String firstTwo = messageID.substring(0, 2);
+        if (!checkMessageID() || !checkMessageLength()) {
+            throw new IllegalStateException(
+                    "Cannot create hash for invalid message."
+            );
+        }
 
         String[] words = message.trim().split("\\s+");
 
-        String firstWord = words[0];
+        String firstWord = cleanWord(words[0]);
+        String lastWord = cleanWord(words[words.length - 1]);
 
-        String lastWord = words[words.length - 1]
-                .replaceAll("^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "");
-
-        return (firstTwo + ":"
-                + messageNumber + ":"
-                + firstWord
-                + lastWord).toUpperCase();
+        return (messageID.substring(0, 2)
+                + ":" + messageNumber
+                + ":" + firstWord + lastWord).toUpperCase();
     }
 
-    // Returns the message action selected by the user.
+    /**
+     * Returns the selected message action.
+     */
     public String SentMessage(int choice) {
 
         switch (choice) {
@@ -145,7 +229,9 @@ private static final Set<String> usedMessageIDs = new HashSet<>();
         }
     }
 
-    // Displays details in the required order.
+    /**
+     * Displays message details in the required order.
+     */
     public String printMessages() {
 
         return "Message ID: " + messageID
@@ -154,92 +240,40 @@ private static final Set<String> usedMessageIDs = new HashSet<>();
                 + "\nMessage: " + message;
     }
 
+    /**
+     * Displays sender and recipient information.
+     */
+    public String printSenderAndRecipient() {
+
+        return "Sender: " + getSender()
+                + "\nRecipient: " + recipient;
+    }
+
     public String getMessageID() {
         return messageID;
     }
 
-    // Returns the total number of sent messages.
-    public static int returnTotalMessagess(List<Message> sent) {
-        return sent.size();
+    public int getMessageNumber() {
+        return messageNumber;
     }
 
-    /**
-     * Stores a message in a JSON array.
-     * JSON string escaping is based on RFC 8259,
-     * Section 7:
-     * https://www.rfc-editor.org/rfc/rfc8259#section-7
-     */
-    public void storeMessage(Path path) throws IOException {
+    public String getSender() {
 
-        String item =
-                "{\"messageID\":\"" + jsonEscape(messageID)
-                + "\",\"messageNumber\":" + messageNumber
-                + ",\"recipient\":\"" + jsonEscape(recipient)
-                + "\",\"message\":\"" + jsonEscape(message)
-                + "\",\"messageHash\":\""
-                + jsonEscape(createMessageHash()) + "\"}";
-
-        
-        String old = "[]";
-
-        if (Files.exists(path)) {
-        old = Files.readString(path).trim();
-
-        // Treat an existing empty file as an empty JSON array.
-        if (old.isEmpty()) {
-        old = "[]";
-    }
-}
-
-        String inner = old.substring(1, old.length() - 1).trim();
-
-        String result = "[\n"
-                + (inner.isEmpty() ? "" : inner + ",\n")
-                + item + "\n]";
-
-        Files.writeString(path, result);
+        // Older JSON records may not contain sender information.
+        return sender == null || sender.isBlank()
+                ? "Unknown sender"
+                : sender;
     }
 
-    // Escapes special characters before writing JSON.
-    private static String jsonEscape(String input) {
+    public String getRecipient() {
+        return recipient;
+    }
 
-        StringBuilder output = new StringBuilder();
+    public String getMessage() {
+        return message;
+    }
 
-        for (char character : input.toCharArray()) {
-
-            switch (character) {
-
-                case '"':
-                    output.append("\\\"");
-                    break;
-
-                case '\\':
-                    output.append("\\\\");
-                    break;
-
-                case '\n':
-                    output.append("\\n");
-                    break;
-
-                case '\r':
-                    output.append("\\r");
-                    break;
-
-                case '\t':
-                    output.append("\\t");
-                    break;
-
-                default:
-                    if (character < 0x20) {
-                        output.append(
-                            String.format("\\u%04x", (int) character)
-                        );
-                    } else {
-                        output.append(character);
-                    }
-            }
-        }
-
-        return output.toString();
+    public String getMessageHash() {
+        return createMessageHash();
     }
 }
