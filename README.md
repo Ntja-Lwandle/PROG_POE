@@ -138,13 +138,18 @@ Git is used to track changes to the project. Part 2 development is managed using
 
 ## AI Usage Disclosure
 
-ChatGPT was used to assist with understanding the assessment requirements, explaining Java concepts, identifying coding errors, suggesting improvements, and preparing testing and documentation guidance. The student remains responsible for reviewing the implementation, verifying functionality, and accurately disclosing the assistance received.
+I used AI tools while working on this PoE:
+
+- ChatGPT: helped me understand the assessment requirements, explain Java concepts, find coding errors and plan my testing.
+- Claude (Anthropic): used to help me simplify and tidy my code (removing duplicate methods, shortening the main class, rewriting comments and fixing the registration message wording)
 
 ## References
 
 Apache Software Foundation (n.d.) *Maven Getting Started Guide*. Available at: https://maven.apache.org/guides/getting-started/index.html (Accessed: 10 October 2026).
 
 Bray, T. (2017) *The JavaScript Object Notation (JSON) Data Interchange Format*. RFC 8259. Internet Engineering Task Force. Available at: https://www.rfc-editor.org/rfc/rfc8259 (Accessed: 18 September 2026).
+
+Google (n.d.) *Gson User Guide*. Available at: https://github.com/google/gson/blob/main/UserGuide.md (Accessed: 10 October 2026).
 
 GitHub (n.d.) *Building and testing Java with Maven*. GitHub Docs. Available at: https://docs.github.com/en/actions/tutorials/build-and-test-code/java-with-maven (Accessed: 5 September 2026).
 

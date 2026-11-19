@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package quickchat;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,7 +57,7 @@ public class MessageTest {
 
         assertEquals(
                 "Cell phone number successfully captured.",
-                message.checkRecipientCellMessage()
+                message.checkRecipientCell()
         );
     }
 
@@ -77,7 +73,7 @@ public class MessageTest {
 
         assertEquals(
                 Message.INVALID_RECIPIENT,
-                message.checkRecipientCellMessage()
+                message.checkRecipientCell()
         );
     }
 

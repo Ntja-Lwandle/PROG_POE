@@ -1,6 +1,3 @@
-/**
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- */
 package quickchat;
 
 import java.io.IOException;
@@ -9,31 +6,23 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * Main class for the QuickChat application.
+ * Main class for the QuickChat console application.
+ * The user registers, logs in and then uses the message menus.
  *
- * Handles registration, login and the messaging menu.
- *
- * @author Lwandle
+ * @author lwandle
  */
 public class QuickChat {
 
-    private static final Path STORAGE_FILE
-            = Path.of("stored-messages.json");
+    // The JSON file where stored messages are saved.
+    private static final Path STORAGE_FILE = Path.of("stored-messages.json");
 
     public static void main(String[] args) {
-
         Scanner input = new Scanner(System.in);
 
         Login user = registerUser(input);
 
-        if (user == null) {
-            input.close();
-            return;
-        }
-
-        boolean loggedIn = loginUser(input, user);
-
-        if (loggedIn) {
+        // Only a user who logs in successfully may use the messaging menu.
+        if (loginUser(input, user)) {
             runMessaging(input, user);
         }
 
@@ -41,190 +30,119 @@ public class QuickChat {
     }
 
     /**
-     * Handles user registration.
+     * Asks for the registration details until they are all valid.
      */
     private static Login registerUser(Scanner input) {
-
         while (true) {
-
             System.out.println("\n==== QuickChat Registration ====");
 
             System.out.print("Enter first name: ");
             String firstName = input.nextLine();
-
             System.out.print("Enter last name: ");
             String lastName = input.nextLine();
-
             System.out.print("Enter username: ");
             String username = input.nextLine();
-
             System.out.print("Enter password: ");
             String password = input.nextLine();
-
             System.out.print("Enter cellphone number: ");
             String cellphone = input.nextLine();
 
-            Login user = new Login(
-                    username,
-                    password,
-                    cellphone,
-                    firstName,
-                    lastName
-            );
-
-            if (user.checkUserName()
-                    && user.checkPasswordComplexity()
-                    && user.checkCellPhoneNumber()) {
-
-                System.out.println(user.registerUser());
-
-                return user;
-            }
+            Login user = new Login(username, password, cellphone,
+                    firstName, lastName);
 
             System.out.println(user.registerUser());
-            System.out.println("Please try registering again.\n");
+
+            if (user.checkUserName() && user.checkPasswordComplexity()
+                    && user.checkCellPhoneNumber()) {
+                return user;
+            }
+            System.out.println("Please try registering again.");
         }
     }
 
     /**
-     * Authenticates the registered user.
+     * Asks for the username and password and shows the login message.
      */
-    private static boolean loginUser(
-            Scanner input, Login user) {
-
+    private static boolean loginUser(Scanner input, Login user) {
         System.out.println("\n==== Login ====");
 
         System.out.print("Enter username: ");
         String username = input.nextLine();
-
         System.out.print("Enter password: ");
         String password = input.nextLine();
 
-        boolean successful
-                = user.loginUser(username, password);
-
-        System.out.println(
-                user.returnLoginStatus(successful)
-        );
-
+        boolean successful = user.loginUser(username, password);
+        System.out.println(user.returnLoginStatus(successful));
         return successful;
     }
 
     /**
-     * Runs the main QuickChat application.
+     * Shows the welcome message and runs the main menu until the user quits.
      */
-    private static void runMessaging(
-            Scanner input, Login user) {
-
+    private static void runMessaging(Scanner input, Login user) {
         MessageManager manager;
-
         try {
-
             manager = new MessageManager(STORAGE_FILE);
-
         } catch (IOException error) {
-
-            System.out.println(
-                    "Unable to load stored messages: "
-                    + error.getMessage()
-            );
-
+            System.out.println("Unable to load stored messages: "
+                    + error.getMessage());
             return;
         }
 
         System.out.println("\nWelcome to QuickChat.");
 
-        int messageLimit = readPositiveInt(
-                input,
-                "How many messages would you like to enter? "
-        );
-
+        // The user decides how many messages may be entered.
+        int messageLimit = readPositiveInt(input,
+                "How many messages would you like to enter? ");
         int processedMessages = 0;
 
         boolean quit = false;
 
-        // Main application loop.
+        // While loop: keeps the application running until the user quits.
         while (!quit) {
-
             displayMainMenu();
-
             int option = readInt(input, "Choose an option: ");
 
             switch (option) {
-
                 case 1:
-
                     if (processedMessages >= messageLimit) {
-
-                        System.out.println(
-                                "Message limit reached."
-                        );
-
+                        System.out.println("Message limit reached.");
                         break;
                     }
 
-                    // Controls the number of messages entered.
-                    for (; processedMessages < messageLimit;
-                            processedMessages++) {
-
-                        System.out.println(
-                                "\nMessage "
-                                + (processedMessages + 1)
-                                + " of "
-                                + messageLimit
-                        );
-
-                        processMessage(
-                                input,
-                                manager,
-                                user,
-                                processedMessages
-                        );
+                    // For loop: only lets the user enter the set number of
+                    // messages. The counter is also the message number.
+                    for (; processedMessages < messageLimit; processedMessages++) {
+                        System.out.println("\nMessage " + (processedMessages + 1)
+                                + " of " + messageLimit);
+                        processMessage(input, manager, user, processedMessages);
                     }
 
-                    System.out.println(
-                            "\nTotal messages sent: "
-                            + manager.returnTotalMessagesSent()
-                    );
-
+                    System.out.println("\nTotal messages sent: "
+                            + manager.returnTotalMessagesSent());
                     break;
 
                 case 2:
-
                     System.out.println("Coming Soon.");
-
                     break;
 
                 case 3:
-
                     quit = true;
-
                     break;
 
                 case 4:
-
-                    displayStoredMessagesMenu(
-                            input, manager
-                    );
-
+                    storedMessagesMenu(input, manager);
                     break;
 
                 default:
-
-                    System.out.println(
-                            "Invalid option. Choose 1, 2, 3 or 4."
-                    );
+                    System.out.println("Invalid option. Choose 1, 2, 3 or 4.");
             }
         }
 
         System.out.println("Goodbye!");
     }
 
-    /**
-     * Displays the main application menu.
-     */
     private static void displayMainMenu() {
-
         System.out.println("\n========== QUICKCHAT MENU ==========");
         System.out.println("1) Send Messages");
         System.out.println("2) Show recently sent messages");
@@ -234,190 +152,91 @@ public class QuickChat {
     }
 
     /**
-     * Accepts, validates and processes an individual message.
+     * Reads one message (recipient and text), creates its ID and hash, and
+     * lets the user send, disregard or store it.
      */
-    private static void processMessage(
-            Scanner input,
-            MessageManager manager,
-            Login user,
-            int messageNumber) {
+    private static void processMessage(Scanner input, MessageManager manager,
+            Login user, int messageNumber) {
 
+        // Ask for the recipient until the number is valid.
         String recipient;
-
-        // Validate the recipient number.
         do {
-            System.out.print(
-                    "Recipient (+27 followed by 9 digits): "
-            );
-
+            System.out.print("Recipient (+27 followed by 9 digits): ");
             recipient = input.nextLine().trim();
-
             if (!Message.validRecipient(recipient)) {
                 System.out.println(Message.INVALID_RECIPIENT);
             }
-
         } while (!Message.validRecipient(recipient));
 
-        // Accept and validate the message.
-        String body;
-
+        // Ask for the message until it is not empty and not too long.
+        String text;
         do {
             System.out.print("Enter message: ");
+            text = input.nextLine();
+            System.out.println(Message.validateMessage(text));
+        } while (text.isBlank() || text.length() > 250);
 
-            body = input.nextLine()
-                    .replaceAll("\\s+([,!.?;:])", "$1");
+        Message message = new Message(Message.generateMessageID(),
+                messageNumber, user.getFullName(), recipient, text);
 
-            System.out.println(Message.validateMessage(body));
+        System.out.println("Message ID generated: " + message.getMessageID());
+        System.out.println("Message Hash: " + message.createMessageHash());
 
-        } while (body.isBlank() || body.length() > 250);
-
-        // Create the message.
-        Message message = new Message(
-                Message.generateMessageID(),
-                messageNumber,
-                user.getFullName(),
-                recipient,
-                body
-        );
-
-        System.out.println(
-                "Message ID generated: "
-                + message.getMessageID()
-        );
-
-        System.out.println(
-                "Message Hash: "
-                + message.createMessageHash()
-        );
-
-        // Ask the user what to do with the message.
         int action = readMessageAction(input);
 
-        boolean processedSuccessfully = false;
-
         try {
-
             switch (action) {
-
                 case 1:
-
                     manager.addSentMessage(message);
-
-                    System.out.println(
-                            message.SentMessage(1)
-                    );
-
-                    processedSuccessfully = true;
-
                     break;
-
                 case 2:
-
                     manager.addDisregardedMessage(message);
-
-                    System.out.println(
-                            message.SentMessage(2)
-                    );
-
-                    int confirmation = readInt(
-                            input,
-                            "Enter 0 to confirm deletion: "
-                    );
-
-                    if (confirmation == 0) {
-                        System.out.println(
-                                "Message disregarded."
-                        );
-                    } else {
-                        System.out.println(
-                                "Message was retained as disregarded."
-                        );
-                    }
-
-                    processedSuccessfully = true;
-
                     break;
-
-                case 3:
-
-                    manager.addStoredMessage(message);
-
-                    System.out.println(
-                            message.SentMessage(3)
-                    );
-
-                    processedSuccessfully = true;
-
-                    break;
-
                 default:
-
-                    System.out.println("Invalid action.");
-
-                    break;
+                    manager.addStoredMessage(message);
             }
 
-            // Display the message details after a successful action.
-            if (processedSuccessfully) {
+            System.out.println(message.SentMessage(action));
 
-                System.out.println(
-                        "\n========== MESSAGE DETAILS =========="
-                );
-
-                System.out.println(message.printMessages());
-
-                System.out.println(
-                        "======================================"
-                );
+            if (action == 2) {
+                readInt(input, "Enter 0 to confirm deletion: ");
+                System.out.println("Message disregarded.");
             }
+
+            // Show the full details after the message has been handled.
+            System.out.println("\n========== MESSAGE DETAILS ==========");
+            System.out.println(message.printMessages());
+            System.out.println("======================================");
 
         } catch (IOException error) {
-
-            System.out.println(
-                    "Message storage error: "
-                    + error.getMessage()
-            );
+            System.out.println("Message storage error: " + error.getMessage());
         }
     }
 
     /**
-     * Displays the message action options.
+     * Asks the user to send, disregard or store the message (1, 2 or 3).
      */
     private static int readMessageAction(Scanner input) {
-
         System.out.println("\nChoose message action:");
         System.out.println("1) Send Message");
         System.out.println("2) Disregard Message");
         System.out.println("3) Store Message to send later");
 
-        int action;
-
-        do {
+        int action = readInt(input, "Select action: ");
+        while (action < 1 || action > 3) {
+            System.out.println("Please select 1, 2 or 3.");
             action = readInt(input, "Select action: ");
-
-            if (action < 1 || action > 3) {
-
-                System.out.println(
-                        "Please select 1, 2 or 3."
-                );
-            }
-
-        } while (action < 1 || action > 3);
-
+        }
         return action;
     }
 
     /**
-     * Displays stored-message menu.
+     * The fourth main menu option: works with the stored messages.
      */
-    private static void displayStoredMessagesMenu(
-            Scanner input,
-            MessageManager manager) {
+    private static void storedMessagesMenu(Scanner input, MessageManager manager) {
+        boolean back = false;
 
-        boolean returnToMain = false;
-
-        while (!returnToMain) {
-
+        while (!back) {
             System.out.println("\n======= STORED MESSAGES =======");
             System.out.println("1) Display sender and recipient");
             System.out.println("2) Display longest stored message");
@@ -431,213 +250,106 @@ public class QuickChat {
             int option = readInt(input, "Choose an option: ");
 
             switch (option) {
-
                 case 1:
-
-                    System.out.println(
-                            manager.displayStoredSendersAndRecipients()
-                    );
-
+                    System.out.println(manager.displayStoredSendersAndRecipients());
                     break;
 
                 case 2:
-
-                    Message longest
-                            = manager.findLongestStoredMessage();
-
+                    Message longest = manager.findLongestStoredMessage();
                     if (longest == null) {
-
-                        System.out.println(
-                                "No stored messages found."
-                        );
-
+                        System.out.println("No stored messages found.");
                     } else {
-
-                        System.out.println(
-                                "Longest stored message:"
-                        );
-
-                        System.out.println(
-                                longest.printMessages()
-                        );
+                        System.out.println("Longest stored message:");
+                        System.out.println(longest.printMessages());
                     }
-
                     break;
 
                 case 3:
-
                     System.out.print("Enter message ID: ");
-
-                    String id = input.nextLine().trim();
-
-                    Message found
-                            = manager.searchMessageByID(id);
-
+                    Message found = manager.searchMessageByID(input.nextLine().trim());
                     if (found == null) {
-
-                        System.out.println(
-                                "Message ID not found."
-                        );
-
+                        System.out.println("Message ID not found.");
                     } else {
-
-                        System.out.println(
-                                "Recipient: "
-                                + found.getRecipient()
-                        );
-
-                        System.out.println(
-                                "Message: "
-                                + found.getMessage()
-                        );
+                        System.out.println("Recipient: " + found.getRecipient());
+                        System.out.println("Message: " + found.getMessage());
                     }
-
                     break;
 
                 case 4:
-
-                    System.out.print(
-                            "Enter recipient number: "
-                    );
-
-                    String recipient
-                            = input.nextLine().trim();
-
-                    List<Message> results
-                            = manager.searchMessagesByRecipient(
-                                    recipient
-                            );
-
+                    System.out.print("Enter recipient number: ");
+                    List<Message> results = manager.searchMessagesByRecipient(
+                            input.nextLine().trim());
                     if (results.isEmpty()) {
-
-                        System.out.println(
-                                "No messages found for this recipient."
-                        );
-
-                    } else {
-
-                        for (Message message : results) {
-
-                            System.out.println(
-                                    message.printMessages()
-                            );
-
-                            System.out.println(
-                                    "--------------------"
-                            );
-                        }
+                        System.out.println("No messages found for this recipient.");
                     }
-
+                    for (Message message : results) {
+                        System.out.println(message.printMessages());
+                        System.out.println("--------------------");
+                    }
                     break;
 
                 case 5:
-
-                    System.out.print(
-                            "Enter the message hash: "
-                    );
-
-                    String hash = input.nextLine().trim();
-
-                    try {
-
-                        Message messageToDelete
-                                = manager.findStoredMessageByHash(hash);
-
-                        boolean deleted
-                                = manager.deleteStoredMessageByHash(hash);
-
-                        if (deleted) {
-
-                            System.out.println(
-                                    "Message: \""
-                                    + messageToDelete.getMessage()
-                                    + "\" successfully deleted."
-                            );
-
-                        } else {
-
-                            System.out.println("Message hash not found.");
-                        }
-
-                    } catch (IOException error) {
-
-                        System.out.println(
-                                "Unable to update JSON file: "
-                                + error.getMessage()
-                        );
-                    }
-
+                    deleteByHash(input, manager);
                     break;
 
                 case 6:
-
-                    System.out.println(
-                            manager.displayStoredMessageReport()
-                    );
-
+                    System.out.println(manager.displayStoredMessageReport());
                     break;
 
                 case 7:
-
-                    returnToMain = true;
-
+                    back = true;
                     break;
 
                 default:
-
-                    System.out.println(
-                            "Please select a valid option."
-                    );
+                    System.out.println("Please select a valid option.");
             }
         }
     }
 
     /**
-     * Reads an integer and handles invalid input.
+     * Deletes a stored message after the user enters its hash.
      */
-    private static int readInt(
-            Scanner input, String prompt) {
+    private static void deleteByHash(Scanner input, MessageManager manager) {
+        System.out.print("Enter the message hash: ");
+        String hash = input.nextLine().trim();
 
+        try {
+            Message messageToDelete = manager.findStoredMessageByHash(hash);
+
+            if (manager.deleteStoredMessageByHash(hash)) {
+                System.out.println("Message: \"" + messageToDelete.getMessage()
+                        + "\" successfully deleted.");
+            } else {
+                System.out.println("Message hash not found.");
+            }
+        } catch (IOException error) {
+            System.out.println("Unable to update JSON file: " + error.getMessage());
+        }
+    }
+
+    /**
+     * Reads a whole number and asks again if the user types something else.
+     */
+    private static int readInt(Scanner input, String prompt) {
         while (true) {
-
             System.out.print(prompt);
-
             try {
-
-                return Integer.parseInt(
-                        input.nextLine().trim()
-                );
-
+                return Integer.parseInt(input.nextLine().trim());
             } catch (NumberFormatException error) {
-
-                System.out.println(
-                        "Please enter a valid number."
-                );
+                System.out.println("Please enter a valid number.");
             }
         }
     }
 
     /**
-     * Ensures the requested number is positive.
+     * Reads a whole number that is greater than zero.
      */
-    private static int readPositiveInt(
-            Scanner input, String prompt) {
-
-        int value;
-
-        do {
-
+    private static int readPositiveInt(Scanner input, String prompt) {
+        int value = readInt(input, prompt);
+        while (value <= 0) {
+            System.out.println("Enter a number greater than zero.");
             value = readInt(input, prompt);
-
-            if (value <= 0) {
-
-                System.out.println(
-                        "Enter a number greater than zero."
-                );
-            }
-
-        } while (value <= 0);
-
+        }
         return value;
     }
 }

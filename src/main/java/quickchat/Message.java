@@ -1,28 +1,28 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package quickchat;
 
-import java.security.SecureRandom;
-import java.util.HashSet;
-import java.util.Set;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.security.SecureRandom;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Represents an individual QuickChat message.
+ * One QuickChat message. It stores the message details and checks the
+ * recipient, the message length, the message ID and the message hash.
  *
- * Stores message information and provides validation, message ID generation and
- * hash generation.
- *
- * @author Lwandle
+ * @author lwandle
  */
 public class Message {
 
     private static final SecureRandom RANDOM = new SecureRandom();
+    // Remembers the IDs already used so that every ID is unique.
     private static final Set<String> USED_IDS = new HashSet<>();
+
+    public static final String INVALID_RECIPIENT
+            = "Cell phone number is incorrectly formatted or does not "
+            + "contain an international code. Please correct the number "
+            + "and try again.";
 
     private String messageID;
     private int messageNumber;
@@ -30,223 +30,158 @@ public class Message {
     private String recipient;
     private String message;
 
-    public static final String INVALID_RECIPIENT
-            = "Cell phone number is incorrectly formatted "
-            + "or does not contain an international code. "
-            + "Please correct the number and try again.";
-
-    /**
-     * Creates a message with sender information.
-     */
-    public Message(String messageID, int messageNumber,
-            String sender, String recipient,
-            String message) {
-
+    public Message(String messageID, int messageNumber, String sender,
+            String recipient, String message) {
         this.messageID = messageID;
         this.messageNumber = messageNumber;
         this.sender = sender;
         this.recipient = recipient;
-        this.message = normalizeMessage(message);
-    }
-
-    /**
-     * Backwards-compatible constructor for existing tests.
-     */
-    public Message(String messageID, int messageNumber,
-            String recipient, String message) {
-
-        this(messageID, messageNumber,
-                "QuickChat", recipient, message);
-    }
-
-    /**
-     * Removes unnecessary spaces before punctuation.
-     */
-    private static String normalizeMessage(String text) {
-        return text == null
+        // Removes a space before punctuation, e.g. "time !" becomes "time!".
+        this.message = message == null
                 ? null
-                : text.replaceAll("\\s+([,!.?;:])", "$1");
+                : message.replaceAll("\\s+([,!.?;:])", "$1");
     }
 
     /**
-     * Backwards-compatible recipient validation method.
+     * Creates a message when the sender is not given. The sender is then
+     * "QuickChat".
      */
-    public String checkRecipientCellMessage() {
-        return checkRecipientCell();
+    public Message(String messageID, int messageNumber, String recipient,
+            String message) {
+        this(messageID, messageNumber, "QuickChat", recipient, message);
     }
 
     /**
-     * Returns the total number of sent messages.
+     * Creates a random ten-digit message ID that has not been used before.
      */
-    public static int returnTotalMessagess(List<Message> sent) {
-        return sent.size();
-    }
-
-    /**
-     * Backwards-compatible JSON storage method.
-     */
-    public void storeMessage(Path path) throws IOException {
-
-        MessageStorage storage = new MessageStorage(path);
-
-        List<Message> messages = storage.loadMessages();
-
-        messages.add(this);
-
-        storage.saveMessages(messages);
-    }
-
-    /**
-     * Generates a unique ten-digit message ID.
-     */
-    public static synchronized String generateMessageID() {
-
+    public static String generateMessageID() {
         String id;
-
         do {
-            StringBuilder number = new StringBuilder();
-
+            id = "";
             for (int i = 0; i < 10; i++) {
-                number.append(RANDOM.nextInt(10));
+                id = id + RANDOM.nextInt(10);
             }
-
-            id = number.toString();
-
         } while (!USED_IDS.add(id));
-
         return id;
     }
 
     /**
-     * Checks that the message ID contains ten digits.
+     * The message ID must be exactly ten digits.
      */
     public boolean checkMessageID() {
-
-        return messageID != null
-                && messageID.matches("[0-9]{10}");
+        return messageID != null && messageID.matches("[0-9]{10}");
     }
 
     /**
-     * Validates a South African international number.
+     * Reuses the cell number check from the Login class (Part 1).
      */
     public static boolean validRecipient(String number) {
-
-        return number != null
-                && number.matches("^\\+27[0-9]{9}$");
+        return Login.isValidCellNumber(number);
     }
 
     public String checkRecipientCell() {
-
         if (validRecipient(recipient)) {
             return "Cell phone number successfully captured.";
         }
-
         return INVALID_RECIPIENT;
     }
 
     /**
-     * Checks the message length.
+     * The message may not be empty and may not be longer than 250 characters.
      */
     public boolean checkMessageLength() {
-
-        return message != null
-                && !message.isBlank()
-                && message.length() <= 250;
+        return message != null && !message.isBlank() && message.length() <= 250;
     }
 
     /**
-     * Returns an appropriate message validation response.
+     * Returns the message that tells the user if the text can be sent.
      */
     public static String validateMessage(String text) {
-
         if (text == null || text.isBlank()) {
             return "Please enter a message.";
         }
-
         if (text.length() > 250) {
-
             int extra = text.length() - 250;
-
-            return "Message exceeds 250 characters by "
-                    + extra
+            return "Message exceeds 250 characters by " + extra
                     + "; please reduce the size.";
         }
-
         return "Message ready to send.";
     }
 
     /**
-     * Removes punctuation around a word.
-     */
-    private String cleanWord(String word) {
-
-        return word.replaceAll(
-                "^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", ""
-        );
-    }
-
-    /**
-     * Creates the required uppercase message hash.
-     *
-     * Format: First two ID digits : message number : first word + last word
+     * Creates the message hash: first two digits of the ID, the message
+     * number, and the first and last word of the message, in capital letters.
+     * Example: 00:0:HITONIGHT
      */
     public String createMessageHash() {
-
         if (!checkMessageID() || !checkMessageLength()) {
-            throw new IllegalStateException(
-                    "Cannot create hash for invalid message."
-            );
+            throw new IllegalStateException("Cannot create hash for invalid message.");
         }
 
         String[] words = message.trim().split("\\s+");
+        String firstWord = removePunctuation(words[0]);
+        String lastWord = removePunctuation(words[words.length - 1]);
 
-        String firstWord = cleanWord(words[0]);
-        String lastWord = cleanWord(words[words.length - 1]);
-
-        return (messageID.substring(0, 2)
-                + ":" + messageNumber
-                + ":" + firstWord + lastWord).toUpperCase();
+        String hash = messageID.substring(0, 2) + ":" + messageNumber + ":"
+                + firstWord + lastWord;
+        return hash.toUpperCase();
     }
 
     /**
-     * Returns the selected message action.
+     * Removes punctuation from the start and end of a word,
+     * e.g. "tonight?" becomes "tonight".
+     */
+    private String removePunctuation(String word) {
+        return word.replaceAll("^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "");
+    }
+
+    /**
+     * Returns the text for the option the user chose:
+     * 1 = send, 2 = disregard, 3 = store.
      */
     public String SentMessage(int choice) {
-
         switch (choice) {
-
             case 1:
                 return "Message successfully sent.";
-
             case 2:
                 return "Press 0 to delete the message.";
-
             case 3:
                 return "Message successfully stored.";
-
             default:
                 return "Invalid option selected.";
         }
     }
 
     /**
-     * Displays message details in the required order.
+     * Returns the message details in the required order:
+     * Message ID, Message Hash, Recipient, Message.
      */
     public String printMessages() {
-
         return "Message ID: " + messageID
                 + "\nMessage Hash: " + createMessageHash()
                 + "\nRecipient: " + recipient
                 + "\nMessage: " + message;
     }
 
-    /**
-     * Displays sender and recipient information.
-     */
     public String printSenderAndRecipient() {
+        return "Sender: " + getSender() + "\nRecipient: " + recipient;
+    }
 
-        return "Sender: " + getSender()
-                + "\nRecipient: " + recipient;
+    /**
+     * Returns the total number of messages in the list of sent messages.
+     */
+    public static int returnTotalMessagess(List<Message> sent) {
+        return sent.size();
+    }
+
+    /**
+     * Adds this message to the JSON file.
+     */
+    public void storeMessage(Path path) throws IOException {
+        MessageStorage storage = new MessageStorage(path);
+        List<Message> messages = storage.loadMessages();
+        messages.add(this);
+        storage.saveMessages(messages);
     }
 
     public String getMessageID() {
@@ -258,11 +193,11 @@ public class Message {
     }
 
     public String getSender() {
-
-        // Older JSON records may not contain sender information.
-        return sender == null || sender.isBlank()
-                ? "Unknown sender"
-                : sender;
+        // Messages saved before the sender was added have no sender.
+        if (sender == null || sender.isBlank()) {
+            return "Unknown sender";
+        }
+        return sender;
     }
 
     public String getRecipient() {

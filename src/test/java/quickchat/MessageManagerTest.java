@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package quickchat;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -182,7 +178,7 @@ public class MessageManagerTest {
     @Test
     public void testDisplayLongestMessage() {
 
-        Message longest = manager.findLongestMessage();
+        Message longest = manager.findLongestStoredMessage();
 
         assertNotNull(longest);
 
@@ -216,7 +212,7 @@ public class MessageManagerTest {
     public void testSearchMessageByID() {
 
         Message found
-                = manager.searchStoredMessageByID(
+                = manager.searchMessageByID(
                         "2000000002"
                 );
 
@@ -276,7 +272,7 @@ public class MessageManagerTest {
         assertEquals(1, manager.getStoredMessagesArray().length);
 
         assertNull(
-                manager.searchStoredMessageByID("2000000002")
+                manager.searchMessageByID("2000000002")
         );
 
         // Confirm that the message hash has also been removed.
@@ -291,7 +287,7 @@ public class MessageManagerTest {
                 );
 
         assertNull(
-                reloadedManager.searchStoredMessageByID("2000000002")
+                reloadedManager.searchMessageByID("2000000002")
         );
 
         assertEquals(

@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package quickchat;
 
 import com.google.gson.Gson;
@@ -16,14 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles saving and retrieving QuickChat messages using a JSON file
+ * Saves the stored messages to a JSON file and reads them back into a list.
  *
- * Google Gson is used to convert Java Message objects into JSON
- * and to convert JSON data back into Java Message objects.
- * Gson library:
- * https://github.com/google/gson
+ * The Gson library is used to change Message objects to JSON and back.
+ * Reference: Google (n.d.) Gson User Guide. Available at:
+ * https://github.com/google/gson/blob/main/UserGuide.md
+ * (Accessed: 10 October 2026).
  *
- *@author lwandle
+ * @author lwandle
  */
 public class MessageStorage {
 
@@ -40,7 +36,7 @@ public class MessageStorage {
     }
 
     /**
-     * Saves the complete stored-message collection.
+     * Writes all the stored messages to the JSON file.
      */
     public void saveMessages(List<Message> messages)
             throws IOException {

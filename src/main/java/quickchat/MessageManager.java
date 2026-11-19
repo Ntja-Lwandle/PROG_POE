@@ -1,18 +1,14 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package quickchat;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Manages sent, disregarded and stored messages. Also maintains the arrays of
- * message hashes and IDs.
+ * Keeps the sent, disregarded and stored messages. It also builds the arrays
+ * of message hashes and message IDs and handles searching, deleting and the
+ * report. Stored messages are saved in a JSON file.
  *
  * @author lwandle
  */
@@ -22,87 +18,35 @@ public class MessageManager {
     private final List<Message> disregardedMessages = new ArrayList<>();
     private final List<Message> storedMessages = new ArrayList<>();
 
-    private final List<String> messageHashes = new ArrayList<>();
-    private final List<String> messageIDs = new ArrayList<>();
-
-    private Message[] sentMessageArray = new Message[0];
-    private Message[] disregardedMessageArray = new Message[0];
-    private Message[] storedMessageArray = new Message[0];
-    private String[] messageHashArray = new String[0];
-    private String[] messageIDArray = new String[0];
-
     private final MessageStorage storage;
 
+    /**
+     * Loads any messages that were stored in the JSON file earlier.
+     */
     public MessageManager(Path filePath) throws IOException {
         storage = new MessageStorage(filePath);
         storedMessages.addAll(storage.loadMessages());
-        refreshTrackingInformation();
     }
 
     public void addSentMessage(Message message) {
         sentMessages.add(message);
-        refreshTrackingInformation();
     }
 
     public void addDisregardedMessage(Message message) {
         disregardedMessages.add(message);
-        refreshTrackingInformation();
-    }
-
-    public void addStoredMessage(Message message) throws IOException {
-        storedMessages.add(message);
-
-        try {
-            saveStoredMessages();
-            refreshTrackingInformation();
-        } catch (IOException ex) {
-            storedMessages.remove(storedMessages.size() - 1);
-            refreshTrackingInformation();
-            throw ex;
-        }
     }
 
     /**
-     * Updates all five arrays after a message is added or deleted.
+     * Adds the message and saves it to the JSON file. If saving fails, the
+     * message is removed again so the list matches the file.
      */
-    private void refreshTrackingInformation() {
-
-        messageHashes.clear();
-        messageIDs.clear();
-
-        addTrackingFor(sentMessages);
-        addTrackingFor(disregardedMessages);
-        addTrackingFor(storedMessages);
-
-        sentMessageArray
-                = sentMessages.toArray(new Message[0]);
-
-        disregardedMessageArray
-                = disregardedMessages.toArray(new Message[0]);
-
-        storedMessageArray
-                = storedMessages.toArray(new Message[0]);
-
-        messageHashArray
-                = messageHashes.toArray(new String[0]);
-
-        messageIDArray
-                = messageIDs.toArray(new String[0]);
-    }
-
-    private void addTrackingFor(List<Message> messages) {
-
-        for (Message message : messages) {
-
-            if (!messageIDs.contains(message.getMessageID())) {
-                messageIDs.add(message.getMessageID());
-            }
-
-            String hash = message.createMessageHash();
-
-            if (!messageHashes.contains(hash)) {
-                messageHashes.add(hash);
-            }
+    public void addStoredMessage(Message message) throws IOException {
+        storedMessages.add(message);
+        try {
+            saveStoredMessages();
+        } catch (IOException error) {
+            storedMessages.remove(message);
+            throw error;
         }
     }
 
@@ -110,326 +54,222 @@ public class MessageManager {
         storage.saveMessages(storedMessages);
     }
 
-    public List<Message> getSentMessages() {
-        return Collections.unmodifiableList(sentMessages);
-    }
+    // ----- Arrays required for Part 3 -----
 
-    public List<Message> getDisregardedMessages() {
-        return Collections.unmodifiableList(disregardedMessages);
-    }
-
-    public List<Message> getStoredMessages() {
-        return Collections.unmodifiableList(storedMessages);
-    }
-
-    public List<String> getMessageHashes() {
-        return Collections.unmodifiableList(messageHashes);
-    }
-
-    public List<String> getMessageIDs() {
-        return Collections.unmodifiableList(messageIDs);
-    }
-
-    // Return copies so callers cannot directly change the stored arrays.
     public Message[] getSentMessagesArray() {
-        return sentMessageArray.clone();
+        return sentMessages.toArray(new Message[0]);
     }
 
     public Message[] getDisregardedMessagesArray() {
-        return disregardedMessageArray.clone();
+        return disregardedMessages.toArray(new Message[0]);
     }
 
     public Message[] getStoredMessagesArray() {
-        return storedMessageArray.clone();
-    }
-
-    public String[] getMessageHashesArray() {
-        return messageHashArray.clone();
-    }
-
-    public String[] getMessageIDsArray() {
-        return messageIDArray.clone();
+        return storedMessages.toArray(new Message[0]);
     }
 
     /**
-     * Displays the sender and recipient of every stored message.
-     *
-     * @return the sender and recipient details
+     * Returns the hashes of every sent, disregarded and stored message.
+     */
+    public String[] getMessageHashesArray() {
+        List<String> hashes = new ArrayList<>();
+        for (Message message : allMessages()) {
+            String hash = message.createMessageHash();
+            if (!hashes.contains(hash)) {
+                hashes.add(hash);
+            }
+        }
+        return hashes.toArray(new String[0]);
+    }
+
+    /**
+     * Returns the IDs of every sent, disregarded and stored message.
+     */
+    public String[] getMessageIDsArray() {
+        List<String> ids = new ArrayList<>();
+        for (Message message : allMessages()) {
+            if (!ids.contains(message.getMessageID())) {
+                ids.add(message.getMessageID());
+            }
+        }
+        return ids.toArray(new String[0]);
+    }
+
+    public List<Message> getSentMessages() {
+        return new ArrayList<>(sentMessages);
+    }
+
+    public List<Message> getDisregardedMessages() {
+        return new ArrayList<>(disregardedMessages);
+    }
+
+    public List<Message> getStoredMessages() {
+        return new ArrayList<>(storedMessages);
+    }
+
+    public List<String> getMessageHashes() {
+        return List.of(getMessageHashesArray());
+    }
+
+    public List<String> getMessageIDs() {
+        return List.of(getMessageIDsArray());
+    }
+
+    // ----- Stored Messages menu features -----
+
+    /**
+     * Option a: shows the sender and recipient of every stored message.
      */
     public String displayStoredSendersAndRecipients() {
-
-        if (storedMessageArray.length == 0) {
+        if (storedMessages.isEmpty()) {
             return "No stored messages found.";
         }
 
-        StringBuilder result = new StringBuilder();
-
-        for (int i = 0; i < storedMessageArray.length; i++) {
-
-            result.append(
-                    storedMessageArray[i].printSenderAndRecipient()
-            );
-
-            result.append("\n--------------------\n");
+        String result = "";
+        for (Message message : storedMessages) {
+            result = result + message.printSenderAndRecipient()
+                    + "\n--------------------\n";
         }
-
-        return result.toString();
+        return result;
     }
 
     /**
-     * Finds the longest message in the stored-message array.
-     *
-     * @return the longest stored message, or null if the array is empty
+     * Option b: finds the longest stored message (null if there are none).
      */
     public Message findLongestStoredMessage() {
-
-        Message longestMessage = null;
-
-        for (int i = 0; i < storedMessageArray.length; i++) {
-
-            if (longestMessage == null
-                    || storedMessageArray[i].getMessage().length()
-                    > longestMessage.getMessage().length()) {
-
-                longestMessage = storedMessageArray[i];
-            }
-        }
-
-        return longestMessage;
-    }
-
-    public Message findLongestMessage() {
-
-        List<Message> all = new ArrayList<>();
-
-        all.addAll(sentMessages);
-        all.addAll(disregardedMessages);
-        all.addAll(storedMessages);
-
-        return findLongest(all);
-    }
-
-    private Message findLongest(List<Message> messages) {
-
         Message longest = null;
-
-        for (Message message : messages) {
-
+        for (Message message : storedMessages) {
             if (longest == null
-                    || message.getMessage().length()
-                    > longest.getMessage().length()) {
-
+                    || message.getMessage().length() > longest.getMessage().length()) {
                 longest = message;
             }
         }
-
         return longest;
     }
 
     /**
-     * Searches stored messages using a message ID.
+     * Option c: finds a message by its message ID (null if not found).
      *
-     * @param id the ID of the message to search for
-     * @return the matching stored message, or null if not found
-     */
-    public Message searchStoredMessageByID(String id) {
-
-        if (id == null || id.isBlank()) {
-            return null;
-        }
-
-        for (int i = 0; i < storedMessageArray.length; i++) {
-
-            if (id.equals(storedMessageArray[i].getMessageID())) {
-                return storedMessageArray[i];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Searches all messages using a message ID. If no ID matches, searches
-     * using the recipient number.
-     *
-     * @param id the message ID or recipient number
-     * @return the matching message, or null if not found
+     * The POE test data searches with a recipient number
+     * ("0838884567"), so if no ID matches, the recipient is checked too.
      */
     public Message searchMessageByID(String id) {
-
         if (id == null || id.isBlank()) {
             return null;
         }
-
-        // Search all messages using the actual message ID.
         for (Message message : allMessages()) {
-
             if (id.equals(message.getMessageID())) {
                 return message;
             }
         }
-
         for (Message message : allMessages()) {
-
             if (id.equals(message.getRecipient())) {
                 return message;
             }
         }
-
         return null;
     }
 
     /**
-     * Searches sent and stored messages for a particular recipient.
+     * Option d: finds all sent and stored messages for one recipient.
      */
     public List<Message> searchMessagesByRecipient(String recipient) {
-
         List<Message> results = new ArrayList<>();
-
         if (recipient == null || recipient.isBlank()) {
             return results;
         }
-
-        // Search sent messages.
-        for (Message message : sentMessageArray) {
-
+        for (Message message : sentMessages) {
             if (recipient.equals(message.getRecipient())) {
                 results.add(message);
             }
         }
-
-        // Search stored messages.
-        for (Message message : storedMessageArray) {
-
+        for (Message message : storedMessages) {
             if (recipient.equals(message.getRecipient())) {
                 results.add(message);
             }
         }
-
         return results;
     }
 
     /**
-     * Finds a stored message using its message hash.
-     *
-     * @param hash the hash to search for
-     * @return the matching message, or null if not found
+     * Finds a stored message by its hash (null if not found).
      */
     public Message findStoredMessageByHash(String hash) {
-
-        if (hash == null || hash.isBlank()) {
-            return null;
-        }
-
-        for (int i = 0; i < storedMessageArray.length; i++) {
-
-            if (storedMessageArray[i]
-                    .createMessageHash().equals(hash)) {
-
-                return storedMessageArray[i];
+        for (Message message : storedMessages) {
+            if (message.createMessageHash().equals(hash)) {
+                return message;
             }
         }
-
         return null;
     }
 
     /**
-     * Deletes a stored message using its message hash.
+     * Option e: deletes a stored message by its hash and updates the JSON
+     * file. Returns false if no stored message has that hash.
      */
-    public boolean deleteStoredMessageByHash(String hash)
-            throws IOException {
-
-        for (int i = 0; i < storedMessages.size(); i++) {
-
-            Message message = storedMessages.get(i);
-
-            if (message.createMessageHash().equals(hash)) {
-
-                storedMessages.remove(i);
-
-                try {
-                    saveStoredMessages();
-                } catch (IOException ex) {
-                    storedMessages.add(i, message);
-                    throw ex;
-                }
-
-                refreshTrackingInformation();
-                return true;
-            }
+    public boolean deleteStoredMessageByHash(String hash) throws IOException {
+        Message message = findStoredMessageByHash(hash);
+        if (message == null) {
+            return false;
         }
 
-        return false;
+        int position = storedMessages.indexOf(message);
+        storedMessages.remove(position);
+        try {
+            saveStoredMessages();
+        } catch (IOException error) {
+            storedMessages.add(position, message);
+            throw error;
+        }
+        return true;
     }
 
     /**
-     * Displays sent and stored reports.
+     * Option f: report with the full details of the sent and stored messages.
      */
     public String displayStoredMessageReport() {
-
-        StringBuilder report = new StringBuilder();
-
-        report.append("\n========== SENT MESSAGE REPORT ==========\n");
-        appendReportSection(report, sentMessages);
-
-        report.append("\n========== STORED MESSAGE REPORT =========\n");
-        appendReportSection(report, storedMessages);
-
-        report.append("Total sent messages: ")
-                .append(sentMessages.size());
-
-        report.append("\nTotal stored messages: ")
-                .append(storedMessages.size());
-
         if (sentMessages.isEmpty() && storedMessages.isEmpty()) {
             return "No sent or stored messages available for the report.";
         }
 
-        return report.toString();
+        String report = "\n========== SENT MESSAGE REPORT ==========\n"
+                + reportSection(sentMessages)
+                + "\n========== STORED MESSAGE REPORT =========\n"
+                + reportSection(storedMessages)
+                + "Total sent messages: " + sentMessages.size()
+                + "\nTotal stored messages: " + storedMessages.size();
+        return report;
     }
 
-    private void appendReportSection(
-            StringBuilder report,
-            List<Message> messages) {
-
+    private String reportSection(List<Message> messages) {
         if (messages.isEmpty()) {
-            report.append("No messages in this section.\n");
-            return;
+            return "No messages in this section.\n";
         }
 
+        String section = "";
         for (Message message : messages) {
-
-            report.append("Message ID: ")
-                    .append(message.getMessageID());
-
-            report.append("\nMessage Hash: ")
-                    .append(message.createMessageHash());
-
-            report.append("\nSender: ")
-                    .append(message.getSender());
-
-            report.append("\nRecipient: ")
-                    .append(message.getRecipient());
-
-            report.append("\nMessage: ")
-                    .append(message.getMessage());
-
-            report.append("\n------------------------------------------\n");
+            section = section + "Message ID: " + message.getMessageID()
+                    + "\nMessage Hash: " + message.createMessageHash()
+                    + "\nSender: " + message.getSender()
+                    + "\nRecipient: " + message.getRecipient()
+                    + "\nMessage: " + message.getMessage()
+                    + "\n------------------------------------------\n";
         }
+        return section;
     }
 
     public int returnTotalMessagesSent() {
         return sentMessages.size();
     }
 
+    /**
+     * Combines the three lists so they can be searched together.
+     */
     private List<Message> allMessages() {
-
         List<Message> all = new ArrayList<>();
-
         all.addAll(sentMessages);
         all.addAll(disregardedMessages);
         all.addAll(storedMessages);
-
         return all;
     }
 }
