@@ -1,23 +1,22 @@
 package quickchat;
 
-
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the Login class.
  *
- * These tests verify username validation, password complexity,
- * cellphone number validation, registration, login authentication,
- * and login status messages using the required project test data.
+ * These tests verify username validation, password complexity, cellphone number
+ * validation, registration, login authentication, and login status messages
+ * using the required project test data.
  *
  * @author lwandle
  */
 public class LoginTest {
 
-     private Login createUser(String username,
-                             String password,
-                             String phone) {
+    private Login createUser(String username,
+            String password,
+            String phone) {
 
         return new Login(
                 username,
